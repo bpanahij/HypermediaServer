@@ -7,7 +7,7 @@
     "type": "git",
     "url": "git://github.com/bpanahij/HypermediaServer.git"
   },
-  "author": "Brian P Johnson",
+  "author": "Brian P Johnson <brian@pjohnson.info> (http://www.pjohnson.info)",
   "license": "BSD-2-Clause",
   "bugs": {
     "url": "https://github.com/bpanahij/HypermediaServer/issues"
