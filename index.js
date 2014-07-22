@@ -17,7 +17,7 @@ var express = require('express');
  * rootDirectory - is the root directory where all of your media directories exist
  * media-type -  is the media type specified in the Accepts: header (e.g. application/json, application/schema+json, text/html
  * uri - the requested resource uri, relative to the web server root
- * mediaExt - the extension to look for in the file structures (e.g. applications/json has a mediaExt of "json"
+ * mediaExt - the extension to look for in the file structures (e.g. applications/json has a mediaExt of "json")
  *
  * @param config
  * @param app

@@ -1,6 +1,4 @@
-var express = require('express')
-  , api = express()
-  , path = require('path')
+var path = require('path')
   , fs = require('fs');
 /**
  *
