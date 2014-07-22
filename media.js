@@ -1,10 +1,11 @@
 var path = require('path')
-  , fs = require('fs');
+  , fs = require('fs')
+  , _ = require('underscore');
 /**
  *
  */
 var rootDirectory = __dirname
-  , errorPath = rootDirectory + '/error';
+  , errorPath = rootDirectory + '/error/index';
 /**
  *
  * @param config
@@ -24,34 +25,63 @@ module.exports = function (config) {
 var routeRequest = function (req, res, next) {
   var accepts = req.headers['accept'];
   var mediaTypes = accepts.split(',');
-  var mediaType = mediaTypes.shift();
-  var mediaExts = mediaType.split(/[\+\/]/);
-  var mediaExt = mediaExts.pop();
-  var ext;
-  switch (mediaExt) {
-    case 'json':
-      switch (mediaType) {
-        case 'application/schema+json':
-          ext = '.json';
-          break;
-        default:
-          ext = '.js';
-      }
-      break;
+  var fileExtensions = _.map(mediaTypes, function (mediaType) {
+    return mediaType.split(/[\+\/]/).pop();
+  });
+  if (_.contains(fileExtensions, 'json')) {
+    fileExtensions.push('js');
+    mediaTypes.push('application/json');
   }
-  res.setHeader('Content-Type', mediaType);
   var mediaPath = req.originalUrl.sanitizePath().splitPath();
-  mediaPath.unshift(accepts);
-  mediaPath.push('index' + ext);
   var params = {};
   mediaPath.testPathParts(rootDirectory, params, function (finalPath, params) {
-    mediaResponse(mediaExt, mediaType, finalPath, req, res, params, next)
+    findExistingFileExt(finalPath, fileExtensions, mediaTypes, function (filePathWithExtension, fileExt, mediaType) {
+      mediaResponse(fileExt, mediaType, filePathWithExtension, req, res, params, next);
+    });
   });
 };
+/**
+ *
+ * @param mediaPath
+ * @param fileExtensions
+ * @param mediaTypes
+ * @param callback
+ */
+function findExistingFileExt(mediaPath, fileExtensions, mediaTypes, callback) {
+  var foundFile = false;
+  _.each(fileExtensions, function (fileExt, index) {
+    var mediaType = mediaTypes[index]
+      , fileInformation = mediaType.split(/[\/]/).pop()
+      , fileName = fileInformation.split(/[\+]/).shift();
+    if (fileName === fileExt || fileExt === 'js') {
+      fileName = 'index';
+    }
+    fs.exists(mediaPath + '/' + fileName + '.' + fileExt, function (exists) {
+      if (exists && !foundFile) {
+        foundFile = true;
+        callback(mediaPath + '/' + fileName + '.' + fileExt, fileExt, mediaType);
+      }
+    });
+    fs.exists(mediaPath + '.' + fileExt, function (exists) {
+      if (exists && !foundFile) {
+        foundFile = true;
+        callback(mediaPath + '.' + fileExt, fileExt, mediaType);
+      }
+    });
+    // Handling the case where no file was found for that media Type
+    if (index >= (fileExtensions.length - 1)) {
+      setTimeout(function () {
+        if (!foundFile) {
+          callback(errorPath + '.html', 'html', 'text/html');
+        }
+      }, 0);
+    }
+  });
+}
 
 /**
  *
- * @param mediaExt
+ * @param fileExt
  * @param mediaType
  * @param mediaPath
  * @param req
@@ -59,20 +89,29 @@ var routeRequest = function (req, res, next) {
  * @param params
  * @param next
  */
-function mediaResponse(mediaExt, mediaType, mediaPath, req, res, params, next) {
-  switch (mediaExt) {
+function mediaResponse(fileExt, mediaType, mediaPath, req, res, params, next) {
+  // Set the response content-type header to match the accept header
+  res.setHeader('Content-Type', mediaType);
+  switch (fileExt) {
     case 'json':
-      switch (mediaType) {
-        case 'application/schema+json':
-          res.json(require(mediaPath));
-          break;
-        default:
-          req.params = params;
-          require(mediaPath)[req.method.toLowerCase()](req, res, next);
-      }
+      res.json(require(mediaPath));
       break;
-    case 'html':
-
+    case 'js':
+      req.params = params;
+      require(mediaPath)[req.method.toLowerCase()](req, res, next);
+      break;
+    default:
+      fs.readFile(mediaPath, function (err, data) {
+        if (err) {
+          res.setHeader('Content-Type', 'application/json');
+          res.json({
+            error: 'media-type: ' + mediaType + ' not supported.'
+          });
+          return;
+        }
+        res.send(data);
+      });
+      break;
   }
 }
 /**
