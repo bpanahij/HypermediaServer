@@ -28,6 +28,10 @@ var routeRequest = function (req, res, next) {
   var fileExtensions = _.map(mediaTypes, function (mediaType) {
     return mediaType.split(/[\+\/]/).pop();
   });
+  if (_.contains(fileExtensions, '*')) {
+    fileExtensions.push('js');
+    mediaTypes.push('application/json');
+  }
   if (_.contains(fileExtensions, 'json')) {
     fileExtensions.push('js');
     mediaTypes.push('application/json');
