@@ -7,6 +7,7 @@
  * Module dependencies.
  */
 var express = require('express');
+var bodyParser = require('body-parser');
 /**
  * Provide a config file and an express server app
  * This module will add a Hypermedia layer, which can serve
@@ -26,11 +27,10 @@ module.exports = function (config, app) {
   /**
    * Body Parsing Middleware
    */
-  app.use(express.json({
-    type: '*json',
-    limit: config.limits.uploadMB
+  app.use(bodyParser.json({
+    type: '*json'
   }));
-  app.use(express.urlencoded({
+  app.use(bodyParser.urlencoded({
     extended: false
   }));
   /**
