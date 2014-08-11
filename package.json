@@ -1,6 +1,6 @@
 {
   "name": "hypermedia_server",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A Hypermedia Server for NodeJS",
   "main": "index.js",
   "repository": {
@@ -13,7 +13,7 @@
     "url": "https://github.com/bpanahij/HypermediaServer/issues"
   },
   "dependencies": {
-    "express": "~3.4.7",
+    "express": "bpanahij/express",
     "underscore": "^1.6.0"
   },
   "devDependencies": {
