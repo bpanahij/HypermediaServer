@@ -23,21 +23,18 @@ module.exports = function (config) {
  * @param next
  */
 var routeRequest = function (req, res, next) {
-  var accepts = req.headers['accept'];
-  var mediaTypes = accepts.split(',');
-  var fileExtensions = _.map(mediaTypes, function (mediaType) {
+  var accepts = req.headers['accept'],
+    mediaTypes = accepts.split(','),
+    fileExtensions = _.map(mediaTypes, function (mediaType) {
     return mediaType.split(/[\+\/]/).pop();
   });
-  if (_.contains(fileExtensions, '*')) {
+
+  if (_.contains(fileExtensions, '*') || _.contains(fileExtensions, 'json')) {
     fileExtensions.push('js');
     mediaTypes.push('application/json');
   }
-  if (_.contains(fileExtensions, 'json')) {
-    fileExtensions.push('js');
-    mediaTypes.push('application/json');
-  }
-  var mediaPath = req.originalUrl.sanitizePath().splitPath();
-  var params = {};
+  var mediaPath = req.originalUrl.sanitizePath().splitPath(),
+    params = {};
   mediaPath.testPathParts(rootDirectory, params, function (finalPath, params) {
     findExistingFileExt(finalPath, fileExtensions, mediaTypes, function (filePathWithExtension, fileExt, mediaType) {
       mediaResponse(fileExt, mediaType, filePathWithExtension, req, res, params, next);
@@ -99,7 +96,7 @@ function mediaResponse(fileExt, mediaType, mediaPath, req, res, params, next) {
   res.setHeader('Content-Type', mediaType);
   switch (fileExt) {
     case 'json':
-      res.json(require(mediaPath));
+      res.status(200).json(require(mediaPath));
       break;
     case 'js':
       req.params = params;
@@ -109,7 +106,7 @@ function mediaResponse(fileExt, mediaType, mediaPath, req, res, params, next) {
       fs.readFile(mediaPath, function (err, data) {
         if (err) {
           res.setHeader('Content-Type', 'application/json');
-          res.json({
+          res.status(200).json({
             error: 'media-type: ' + mediaType + ' not supported.'
           });
           return;
@@ -148,8 +145,8 @@ Array.prototype.testPathParts = function (rootPath, params, callback) {
     callback(rootPath, params);
     return this;
   }
-  var pathSegment = this.shift();
-  var nextPath = path.join(rootPath, pathSegment);
+  var pathSegment = this.shift(),
+    nextPath = path.join(rootPath, pathSegment);
   fs.exists(nextPath, function (exists) {
     if (exists) {
       that.testPathParts(nextPath, params, callback);

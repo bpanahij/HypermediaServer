@@ -1,0 +1,8 @@
+{
+  "id": "/api/v1/students",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Root of API",
+  "name": "Root of API",
+  "type": "object",
+  "description": "This is the beginning..."
+}
