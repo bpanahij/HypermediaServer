@@ -19,8 +19,7 @@ var config = {
  *
  */
 var server = http.createServer(app);
-var apiServer = require('../index');
-apiServer(config, app);
+require('../index')(config, app);
 /**
  * Start HTTP Server
  */

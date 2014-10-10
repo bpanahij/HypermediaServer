@@ -76,6 +76,7 @@ function findExistingFileExt(mediaPath, fileExtensions, mediaTypes, callback) {
     if (index >= (fileExtensions.length - 1)) {
       setTimeout(function () {
         if (!foundFile) {
+          foundFile = true;
           callback(errorPath + '.html', 'html', 'text/html');
         }
       }, 0);
